@@ -8,48 +8,75 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+
+
 namespace BlogPRestAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class WeatherForecastController : ControllerBase
     {
         private DataContext _context;
-       /* private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        }; */
+     
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, DataContext context)
+        public WeatherForecastController( DataContext context)
         {
             _context = context;
-            _logger = logger;
+          
         }
 
+        
+        [Route("allposts")]
+         [HttpGet]
+         public ActionResult GetValues()
+         {
+             var values = _context.Posties.ToList();
+             return Ok(values);
+         } 
 
-        [HttpGet]
-        public ActionResult GetValues()
-        {
-            var values = _context.Posties.ToList();
-            return Ok(values);
-        }
 
-        [HttpGet("{id}")]
+    [HttpGet("{id}")]
         public async Task<ActionResult> Get(int id)
         {
             var value = await _context.Posties.FirstOrDefaultAsync(values => values.Id == id);
             return Ok(value);
         }
 
-       
+        [Route("create")]
         [HttpPost]
         public string Create(Post data)
         {
             _context.Posties.Add(data);
             _context.SaveChanges();
             return "Basarili kayit.";
+        }
+
+        [Route("update")]
+        [HttpPut]
+        public ActionResult Put(PostUpdateDto data)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Not a valid model");
+
+            using (_context)
+            {
+                var existingPost = _context.Posties.Where(s => s.Id == data.Id)
+                                                        .FirstOrDefault<Post>();
+
+                if (existingPost != null)
+                {
+                    existingPost.Title = data.Title;
+                    existingPost.Content = data.Content;
+
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+
+            return Ok();
         }
 
 
