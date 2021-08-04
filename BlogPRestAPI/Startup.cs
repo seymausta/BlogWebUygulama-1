@@ -13,6 +13,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using BlogPRestAPI.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 namespace BlogPRestAPI
 {
     public class Startup
@@ -21,19 +26,40 @@ namespace BlogPRestAPI
         {
             Configuration = configuration;
         }
+        
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<DataContext>(x => 
+
+            var key = Encoding.ASCII.GetBytes(Configuration.GetSection("Appsettings:Token").Value);
+
+            services.AddDbContext<DataContext>(x =>
                 x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddCors();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "BlogPRestAPI", Version = "v1" });
+            });
+
+            //
+
+            services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IAppRepository, AppRepository>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey=true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer=false,
+                    ValidateAudience=false
+
+                };
             });
         }
 
@@ -49,6 +75,8 @@ namespace BlogPRestAPI
 
             app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
             );
+
+            app.UseAuthentication();
 
             app.UseHttpsRedirection();
 

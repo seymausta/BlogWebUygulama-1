@@ -15,6 +15,7 @@ namespace BlogPRestAPI.Data
         }
        
         public DbSet<Post> Posties { get; set; }
+        public DbSet<User> Users { get; set; }
         //public DbSet<PostUpdateDto> UPosties { get; set; }
 
     }
