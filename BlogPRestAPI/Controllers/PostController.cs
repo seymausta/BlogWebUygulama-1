@@ -16,14 +16,14 @@ namespace BlogPRestAPI.Controllers
 {
     [ApiController]
     [Route("api")]
-    public class WeatherForecastController : ControllerBase
+    public class PostController : ControllerBase
     {
         private IPostRepository _postRepository;
         private IAppRepository _appRepository;
 
         private DataContext _context;
 
-        public WeatherForecastController(DataContext context, IPostRepository postRepository, IAppRepository appRepository)
+        public PostController(DataContext context, IPostRepository postRepository, IAppRepository appRepository)
         {
             _postRepository = postRepository;
             _context = context;
@@ -88,6 +88,7 @@ namespace BlogPRestAPI.Controllers
                 {
                     existingPost.Title = data.Title;
                     existingPost.Content = data.Content;
+                    existingPost.ImgPath = data.ImgPath;
 
                     _context.SaveChanges();
                 }
